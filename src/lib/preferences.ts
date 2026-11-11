@@ -65,9 +65,11 @@ const rawBookmark = () => {
   }
 };
 
-export function useBookmark(): Bookmark | null {
-  const raw = useSyncExternalStore(subscribeBookmark, rawBookmark, () => null);
+/** `undefined` while unknown (server render and hydration), `null` when nothing is saved. */
+export function useBookmark(): Bookmark | null | undefined {
+  const raw = useSyncExternalStore(subscribeBookmark, rawBookmark, () => undefined);
   return useMemo(() => {
+    if (raw === undefined) return undefined;
     try {
       return raw ? (JSON.parse(raw) as Bookmark) : null;
     } catch {
