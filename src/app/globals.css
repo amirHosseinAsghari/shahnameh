@@ -1,26 +1,257 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── One colour, two values ───────────────────────────────
+   Persian blue (#1C39BB) on white by day; white on a night
+   of the same blue after dark.                             */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --primary: #1c39bb;
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --ink: #1c39bb;
+  --accent: #1c39bb;
+  --ink-soft: color-mix(in oklab, #1c39bb 62%, white);
+  --rule: color-mix(in oklab, #1c39bb 14%, white);
+  --wash: color-mix(in oklab, #1c39bb 5%, white);
+}
+
+.dark {
+  --bg: #060c2a;
+  --surface: #0a1440;
+  --ink: #ffffff;
+  --accent: #9fb0ff;
+  --ink-soft: rgb(255 255 255 / 0.62);
+  --rule: rgb(255 255 255 / 0.12);
+  --wash: rgb(255 255 255 / 0.04);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: var(--primary);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-accent: var(--accent);
+  --color-ink-soft: var(--ink-soft);
+  --color-rule: var(--rule);
+  --color-wash: var(--wash);
+  --font-sans: var(--font-vazir), system-ui, sans-serif;
+  --font-nastaliq: var(--font-noto-nastaliq), var(--font-vazir), serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── Reading modes ─────────────────────────────────────── */
+:root {
+  --verse-font: var(--font-vazir), system-ui, sans-serif;
+  --verse-size: 1.2rem;
+  --verse-leading: 2.3;
+  --title-font: var(--font-vazir), system-ui, sans-serif;
+  --size-scale: 1;
+}
+
+:root[data-font="nastaliq"] {
+  --verse-font: var(--font-noto-nastaliq), var(--font-vazir), serif;
+  --verse-size: 1.32rem;
+  --verse-leading: 2.65;
+  --title-font: var(--font-noto-nastaliq), var(--font-vazir), serif;
+}
+
+:root[data-size="sm"] { --size-scale: 0.9; }
+:root[data-size="lg"] { --size-scale: 1.14; }
+
+@media (max-width: 640px) {
+  :root { --verse-size: 1.08rem; }
+  :root[data-font="nastaliq"] { --verse-size: 1.15rem; --verse-leading: 2.5; }
+}
+
+/* ── Base ──────────────────────────────────────────────── */
+html {
+  background: var(--bg);
+  color-scheme: light;
+}
+.dark {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-vazir), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+::selection {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* Component classes live in a layer so Tailwind utilities (e.g. `absolute`) can override them. */
+@layer components {
+  .label {
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    color: var(--ink-soft);
+  }
+
+  /* ── Duotone plates ────────────────────────────────────────
+     Paintings are printed in the primary blue: shadows take the
+     blue, highlights stay white — like a single-ink art book.  */
+  .duotone {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background: var(--primary);
+  }
+  /* The blend sits on the direct child: animated wrappers (blur/opacity) form their
+     own stacking context, which would otherwise hide the blue backing from the image. */
+  .duotone > * {
+    mix-blend-mode: screen;
+  }
+  .duotone img {
+    filter: grayscale(1) contrast(1.3) brightness(0.97);
+  }
+  .dark .duotone {
+    filter: brightness(0.86);
+  }
+}
+
+/* ── Fluid call-to-action ──────────────────────────────────
+   Quiet and single-ink: a hairline border with a faint sheen
+   that slowly travels around it, and a barely-moving wash of
+   the primary blue inside. Hover only lifts the light a touch —
+   nothing changes size, so the layout never moves.            */
+@property --fluid-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes fluid-turn {
+  to { --fluid-angle: 360deg; }
+}
+
+@keyframes fluid-drift {
+  from { background-position: 0% 50%; }
+  to { background-position: 100% 50%; }
+}
+
+@layer components {
+  .fluid-btn {
+    position: relative;
+    isolation: isolate;
+    display: inline-flex;
+    border-radius: 9999px;
+    padding: 1px;
+    background: conic-gradient(
+      from var(--fluid-angle),
+      #1c39bb,
+      #1c39bb 70%,
+      #7d90e0 85%,
+      #1c39bb
+    );
+    animation: fluid-turn 9s linear infinite;
+  }
+  /* A whisper of halo, only really visible on hover. */
+  .fluid-btn::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    z-index: -1;
+    border-radius: inherit;
+    background: #1c39bb;
+    filter: blur(10px);
+    opacity: 0.12;
+    transition: opacity 0.6s ease;
+  }
+  .fluid-inner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-radius: inherit;
+    padding: 0.8rem 1.75rem;
+    font-size: 0.875rem;
+    color: #fff;
+    background: linear-gradient(110deg, #1a35ad, #1c39bb 40%, #2442c4 50%, #1c39bb 60%, #1a35ad);
+    background-size: 250% 100%;
+    animation: fluid-drift 8s ease-in-out infinite alternate;
+    transition: background-color 0.6s ease;
+  }
+  .fluid-btn:hover::before,
+  .fluid-btn:focus-visible::before {
+    opacity: 0.25;
+  }
+  .fluid-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fluid-btn,
+  .fluid-inner {
+    animation: none;
+  }
+}
+
+/* ── Verse typography ──────────────────────────────────── */
+.verse {
+  font-family: var(--verse-font);
+  font-size: calc(var(--verse-size) * var(--size-scale));
+  line-height: var(--verse-leading);
+  color: var(--ink);
+  text-align: justify;
+  text-align-last: justify;
+  font-feature-settings: "kern", "calt", "liga";
+}
+
+.title-font {
+  font-family: var(--title-font);
+}
+
+/* Hemistich columns are as wide as the widest hemistich on the page (shared via
+   subgrid), so justification stays gentle and every beyt lines up. */
+.verse-grid {
+  display: grid;
+  grid-template-columns: minmax(0, max-content) 1.75rem minmax(0, max-content);
+  justify-content: center;
+}
+.verse-grid > * {
+  grid-column: 1 / -1;
+}
+/* Section headings sit in the verse flow but must not be justified like verse. */
+.verse-grid > div {
+  text-align: center;
+  text-align-last: center;
+}
+.beyt {
+  display: grid;
+  grid-template-columns: subgrid;
+  align-items: center;
+}
+@media (max-width: 640px) {
+  .verse-grid {
+    grid-template-columns: 1fr;
+  }
+  .beyt {
+    grid-template-columns: 1fr;
+    padding-block: 0.15rem;
+  }
+  .beyt .misra:last-child {
+    padding-inline-start: 2.25rem;
+  }
+  .beyt .beyt-mark {
+    display: none;
+  }
+  .verse {
+    text-align: start;
+    text-align-last: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
 }
