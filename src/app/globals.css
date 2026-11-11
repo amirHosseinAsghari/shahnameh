@@ -232,19 +232,17 @@ body {
   .verse-grid {
     grid-template-columns: 1fr;
   }
+  /* Phones: each beyt is a centred couplet, with air between beyts. */
   .beyt {
     grid-template-columns: 1fr;
-    padding-block: 0.15rem;
-  }
-  .beyt .misra:last-child {
-    padding-inline-start: 2.25rem;
+    padding-block: 0.75rem;
   }
   .beyt .beyt-mark {
     display: none;
   }
   .verse {
-    text-align: start;
-    text-align-last: start;
+    text-align: center;
+    text-align-last: center;
   }
 }
 
